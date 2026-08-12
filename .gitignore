@@ -1,0 +1,11 @@
+# Ignore hidden files and directories except Git metadata
+.*
+!.gitignore
+!.git/
+node_modules
+dist
+.env
+.DS_Store
+*.local
+.env.*
+!.env.example

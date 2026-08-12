@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: #f5a926;
+  color: #12181f;
+}
+
+:focus-visible {
+  outline: 2px solid #e89417;
+  outline-offset: 2px;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-amber-500 px-5 py-2.5 font-display font-semibold text-yard-950 transition hover:bg-amber-400 active:translate-y-px disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-yard-700/30 bg-white px-5 py-2.5 font-display font-semibold text-yard-900 transition hover:border-yard-700 disabled:opacity-50;
+  }
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-yard-900 px-5 py-2.5 font-display font-semibold text-yard-50 transition hover:bg-yard-800 disabled:opacity-50;
+  }
+  .input {
+    @apply w-full rounded-md border border-yard-200 bg-white px-3.5 py-2.5 text-sm text-yard-900 placeholder:text-yard-400 focus:border-amber-500 focus:outline-none;
+  }
+  .label {
+    @apply mb-1.5 block font-display text-xs font-semibold uppercase tracking-wide text-yard-600;
+  }
+  .card {
+    @apply rounded-xl border border-yard-200 bg-white shadow-card;
+  }
+  .eyebrow {
+    @apply font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-600;
+  }
+}
