@@ -14,21 +14,54 @@ export default function Register() {
   const [role, setRole] = useState("client");
   const [form, setForm] = useState({
     name: "", email: "", password: "", phone: "", whatsapp: "",
-    category: "Plumber", bio: "", yearsExperience: 1, address: "",
+    skills: [], otherSkill: "", bio: "", yearsExperience: 1, address: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const update = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
+  const toggleSkill = (skill) => {
+    setForm((prev) => {
+      const has = prev.skills.includes(skill);
+      const skills = has
+        ? prev.skills.filter((s) => s !== skill)
+        : [...prev.skills, skill];
+      return { ...prev, skills, otherSkill: has && skill === "Other" ? "" : prev.otherSkill };
+    });
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (role === "worker" && form.skills.length === 0) {
+      setError("Select at least one skill.");
+      return;
+    }
+    if (role === "worker" && form.skills.includes("Other") && !form.otherSkill.trim()) {
+      setError("Please specify your other skill.");
+      return;
+    }
+
     setLoading(true);
+
+    // Replace "Other" with the custom value the user typed, so the backend
+    // never has to know about the "Other" placeholder.
+    const resolvedSkills = form.skills
+      .filter((s) => s !== "Other")
+      .concat(form.otherSkill.trim() ? [form.otherSkill.trim()] : []);
 
     const finishRegister = async (coords) => {
       try {
-        const user = await register({ ...form, role, lng: coords?.lng, lat: coords?.lat });
+        const user = await register({
+          ...form,
+          skills: resolvedSkills,
+          category: resolvedSkills[0], // keep a primary category for back-compat
+          role,
+          lng: coords?.lng,
+          lat: coords?.lat,
+        });
         navigate(user.role === "worker" ? "/dashboard" : "/workers");
       } catch (err) {
         setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || "Registration failed");
@@ -92,11 +125,38 @@ export default function Register() {
         {role === "worker" && (
           <>
             <div>
-              <label className="label">Trade / Category</label>
-              <select className="input" value={form.category} onChange={update("category")}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <label className="label">Trades / Skills (select all that apply)</label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((c) => {
+                  const active = form.skills.includes(c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => toggleSkill(c)}
+                      aria-pressed={active}
+                      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                        active
+                          ? "border-yard-950 bg-yard-950 text-white"
+                          : "border-yard-200 bg-white text-yard-600 hover:border-yard-400"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {form.skills.includes("Other") && (
+                <input
+                  className="input mt-2"
+                  placeholder="Tell us your other skill"
+                  value={form.otherSkill}
+                  onChange={update("otherSkill")}
+                />
+              )}
             </div>
+
             <div>
               <label className="label">Years of experience</label>
               <input type="number" min="0" className="input" value={form.yearsExperience} onChange={update("yearsExperience")} />
