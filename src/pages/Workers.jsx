@@ -25,27 +25,69 @@ export default function Workers() {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+// add near the top of Workers.jsx
+const [manualQuery, setManualQuery] = useState("");
+const [geocoding, setGeocoding] = useState(false);
 
-  const locate = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocError("Geolocation isn't supported on this device. Showing Nairobi CBD as default.");
-      setCoords({ lat: -1.2921, lng: 36.8219 });
+const searchManualLocation = async () => {
+  if (!manualQuery.trim()) return;
+  setGeocoding(true);
+  setLocError("");
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ke&q=${encodeURIComponent(manualQuery)}`
+    );
+    const results = await res.json();
+    if (results.length === 0) {
+      setLocError("Couldn't find that place. Try a nearby town or estate name.");
       return;
     }
-    setLocating(true);
-    setLocError("");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocating(false);
-      },
-      () => {
-        setLocError("Location access denied. Showing Nairobi CBD as default — allow location for accurate results.");
-        setCoords({ lat: -1.2921, lng: 36.8219 });
-        setLocating(false);
-      }
-    );
-  }, []);
+    setCoords({ lat: +results[0].lat, lng: +results[0].lon });
+  } catch {
+    setLocError("Location search failed — check your connection.");
+  } finally {
+    setGeocoding(false);
+  }
+};
+  // const locate = useCallback(() => {
+  //   if (!navigator.geolocation) {
+  //     setLocError("Geolocation isn't supported on this device. Showing Nairobi CBD as default.");
+  //     setCoords({ lat: -1.2921, lng: 36.8219 });
+  //     return;
+  //   }
+  //   setLocating(true);
+  //   setLocError("");
+  //   navigator.geolocation.getCurrentPosition(
+  //     (pos) => {
+  //       setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+  //       setLocating(false);
+  //     },
+  //     () => {
+  //       setLocError("Location access denied. Showing Nairobi CBD as default — allow location for accurate results.");
+  //       setCoords({ lat: -1.2921, lng: 36.8219 });
+  //       setLocating(false);
+  //     }
+  //   );
+  // }, []);
+  const locate = useCallback(() => {
+  if (!navigator.geolocation) {
+    setLocError("Geolocation isn't supported on this device — search for your location below.");
+    return;
+  }
+  setLocating(true);
+  setLocError("");
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      setLocating(false);
+    },
+    () => {
+      setLocError("Couldn't detect your location precisely — search for your area below.");
+      setLocating(false);
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
+}, []);
 
   useEffect(() => {
     if (!coords) locate();
@@ -87,11 +129,27 @@ export default function Workers() {
         </button>
       </div>
 
-      {locError && (
+      {/* {locError && (
         <p className="mb-6 rounded-md border border-amber-400/40 bg-amber-400/10 px-4 py-2.5 text-sm text-amber-700">
           {locError}
+
         </p>
-      )}
+      )} */}
+      {/* place this under the locError banner */}
+{locError && (
+  <div className="mb-6 flex flex-col gap-2 rounded-md border border-amber-400/40 bg-amber-400/10 px-4 py-3 sm:flex-row sm:items-center">
+    <input
+      className="input flex-1"
+      placeholder="Type your town/estate instead, e.g. Nakuru, Eldoret..."
+      value={manualQuery}
+      onChange={(e) => setManualQuery(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && searchManualLocation()}
+    />
+    <button onClick={searchManualLocation} disabled={geocoding} className="btn-outline text-sm whitespace-nowrap">
+      {geocoding ? "Searching..." : "Use this place"}
+    </button>
+  </div>
+)}
 
       {/* Filters */}
       <div className="mb-8 grid gap-3 sm:grid-cols-3">
@@ -113,7 +171,7 @@ export default function Workers() {
         <div>
           <label className="label">Radius: {radius} km</label>
           <input
-            type="range" min="1" max="50" value={radius}
+            type="range" min="1" max="500" value={radius}
             onChange={(e) => setRadius(+e.target.value)}
             className="mt-3 w-full accent-amber-500"
           />
