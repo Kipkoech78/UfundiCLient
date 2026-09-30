@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import logo from "../../public/ufundihome.png"
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,9 +13,11 @@ export default function Navbar() {
     <header className="sticky top-0 z-30 border-b border-yard-200 bg-yard-50/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
         <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-yard-950 font-display text-sm font-bold text-amber-400">
-            UH
-          </span>
+          <img
+            src={logo}
+            alt="UfundiHome logo"
+            className="h-10 w-10 rounded-md object-cover"
+          />
           <span className="font-display text-lg font-semibold tracking-tight">UfundiHome</span>
         </Link>
 
