@@ -22,6 +22,7 @@ export default function Navbar() {
           <NavLink to="/workers" className={linkClass}>Find a Fundi</NavLink>
           <NavLink to="/support" className={linkClass}>Support</NavLink>
           {user?.role === "worker" && <NavLink to="/dashboard" className={linkClass}>My Dashboard</NavLink>}
+          {user?.role === "admin" && <NavLink to="/admin" className={linkClass}>Admin</NavLink>}
         </nav>
 
         <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -10,11 +10,15 @@ import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Support from "./pages/Support.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import useTracker from "./hooks/useTracker.js";
 
 export default function App() {
+  useTracker();
+  const isAdmin = useLocation().pathname.startsWith("/admin");
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      {!isAdmin && <Navbar />}
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -31,10 +35,18 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
+      {!isAdmin && <Footer />}
     </div>
   );
 }
